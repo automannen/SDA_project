@@ -6,13 +6,15 @@ import os
 variables = [
   'N06A-Antidepressants',
   'A02B-Drugs for peptic ulcer and gastro-oesophageal reflux diseases (GORD)',
-  'R03-Drugs for obstructive airway diseases'
+  # 'R03-Drugs for obstructive airway diseases',
+  'N-Nervous system'
 ]
 
 variable_codes = {
   'N06A-Antidepressants': 'N06A',
   'A02B-Drugs for peptic ulcer and gastro-oesophageal reflux diseases (GORD)': 'A02B',
-  'R03-Drugs for obstructive airway diseases': 'R03'
+  'R03-Drugs for obstructive airway diseases': 'R03',
+  'N-Nervous system': 'N'
 }
 
 oecd_countries = [
@@ -28,7 +30,7 @@ base_dir = '../data/'  # Update this to the path where your CSV files are stored
 
 # Read and filter both dataframes
 life_expectancy_df = pd.read_csv(os.path.join(base_dir, 'life_expectancy.csv'))
-pharmaceutical_sales_df = pd.read_csv(os.path.join(base_dir, 'pharmaceutical_sales.csv'))
+pharmaceutical_sales_df = pd.read_csv(os.path.join(base_dir, 'pharma_sales_ppp.csv'))
 
 # Filter for OECD countries in both dataframes
 life_expectancy_df = life_expectancy_df[life_expectancy_df["Country"].isin(oecd_countries)]
