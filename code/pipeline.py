@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr, boxcox
 from collections import defaultdict
 import os
+from sklearn.linear_model import LinearRegression
 
 plots_directory = '../data_visualization/transformed_data'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
@@ -17,15 +18,21 @@ reciprocal.__name__ = 'reciprocal'
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
 
 def plot_transformed_data(x, y, best_transformation, drug, gender):
-    plt.scatter(best_transformation(x), y)
-    filename = f"{drug}_{gender}_{best_transformation.__name__}"
+
+    if best_transformation == None:
+        filename = f"{drug}_{gender}"
+        plt.scatter(x, y)
+        plt.title('no transformation')
+    else:
+        plt.title(best_transformation.__name__)
+        plt.scatter(best_transformation(x), y)
+        filename = f"{drug}_{gender}_{best_transformation.__name__}"
     filepath = os.path.join(plots_directory, filename)
     plt.savefig(filepath)
-    plt.title(best_transformation.__name__)
+
     plt.xlabel(drug)
     plt.ylabel(gender)
     plt.close()
-
 
 
 def pipeline():
@@ -54,8 +61,9 @@ def pipeline():
             # Set to 0 so there is always an improvement
             pearson = 0
             best_p_value = 0
+            transformation_idx = None
 
-            for transformation in transformations:
+            for idx, transformation in enumerate(transformations):
                 if transformation == boxcox:
                     transformed_data, _ = boxcox(x)
                 else:
@@ -65,19 +73,36 @@ def pipeline():
                     best_transformation = transformation
                     pearson = new_pearson
                     best_p_value = p_value
+                    transformation_idx = idx
 
+            vanilla_pearson, p_value = pearsonr(x, y)
+            if abs(vanilla_pearson) > abs(pearson):
+                best_transformation = None
+                pearson = new_pearson
+                best_p_value = p_value
+                transformation_idx = None
+            model = LinearRegression()
+
+            if best_transformation == None:
+                model.fit(x.reshape(-1, 1), y)
+                transformation_dict[gender][drug] = (best_transformation, pearson, transformation_idx)
+                print("R^2: ", model.score(x.reshape(-1, 1), y), "DE SCORE")
+            else:
+
+                model.fit(best_transformation(x).reshape(-1, 1), y)
+                print("R^2: ", model.score(best_transformation(x).reshape(-1, 1), y), "DE SCORE")
 
             # Saving the best transformation for each drug
-            transformation_dict[gender][drug] = (best_transformation.__name__, pearson, best_p_value)
+                transformation_dict[gender][drug] = (best_transformation.__name__, pearson, transformation_idx)
             plot_transformed_data(x, y, best_transformation, drug, gender)
-            if best_p_value <= 0.05:
-                print("REJECTED")
-                print(drug)
-                print(gender)
-            else:
-                print("ACCEPTED")
-                print(drug)
-                print(gender)
+            # if best_p_value <= 0.05:
+            #     print("REJECTED")
+            #     print(drug)
+            #     print(gender)
+            # else:
+            #     print("ACCEPTED")
+            #     print(drug)
+            #     print(gender)
 
     return transformation_dict
 
