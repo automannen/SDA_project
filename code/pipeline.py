@@ -19,6 +19,12 @@ transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
 
 def plot_transformed_data(x, y, best_transformation, drug, gender):
 
+    # for i in range(19):
+    #     max_value = max(x)
+    #     idx_max = np.where(x == max_value)
+    #     x = np.delete(x, idx_max)
+    #     y = np.delete(y, idx_max)
+
     if best_transformation == None:
         filename = f"{drug}_{gender}"
         plt.scatter(x, y)
@@ -26,12 +32,12 @@ def plot_transformed_data(x, y, best_transformation, drug, gender):
     else:
         plt.title(best_transformation.__name__)
         plt.scatter(best_transformation(x), y)
-        filename = f"{drug}_{gender}_{best_transformation.__name__}"
+        filename = f"{drug.replace(' ', '_')}_{gender.replace(' ', '_')}_{best_transformation.__name__}"
     filepath = os.path.join(plots_directory, filename)
+    plt.xlabel(drug + 'transformed with some function')
+    plt.ylabel(gender)
     plt.savefig(filepath)
 
-    plt.xlabel(drug)
-    plt.ylabel(gender)
     plt.close()
 
 
@@ -56,15 +62,17 @@ def pipeline():
             y = np.array(filter_gender['Life_Expectancy_Value'])
 
             # Adding a small constant to circumvent the zero values in the data
-            x = x + 1e-10
+            min_val = min(x)
+            x = x - min_val + 1e-10
 
             # Set to 0 so there is always an improvement
             pearson = 0
             best_p_value = 0
             transformation_idx = None
 
+
             for idx, transformation in enumerate(transformations):
-                if transformation == boxcox:
+                if transformation == boxcox and drug != 'Total pharmaceutical sales':
                     transformed_data, _ = boxcox(x)
                 else:
                     transformed_data = transformation(x)
@@ -86,11 +94,11 @@ def pipeline():
             if best_transformation == None:
                 model.fit(x.reshape(-1, 1), y)
                 transformation_dict[gender][drug] = (best_transformation, pearson, transformation_idx)
-                print("R^2: ", model.score(x.reshape(-1, 1), y), "DE SCORE")
+                # print("R^2: ", model.score(x.reshape(-1, 1), y), "DE SCORE")
             else:
 
                 model.fit(best_transformation(x).reshape(-1, 1), y)
-                print("R^2: ", model.score(best_transformation(x).reshape(-1, 1), y), "DE SCORE")
+                # print("R^2: ", model.score(best_transformation(x).reshape(-1, 1), y), "DE SCORE")
 
             # Saving the best transformation for each drug
                 transformation_dict[gender][drug] = (best_transformation.__name__, pearson, transformation_idx)

@@ -7,6 +7,7 @@ from tqdm import tqdm
 from pipeline import pipeline
 from scipy.stats import boxcox
 
+
 squared = lambda x: x**2
 squared.__name__ = 'square'
 reciprocal = lambda x: 1/x
@@ -14,7 +15,8 @@ reciprocal.__name__ = 'reciprocal'
 
 merged_df = pd.read_csv('merged_data.csv')
 
-n_variables = 3
+n_variables = 2
+num_std_devs = 3
 drug_vars = merged_df['Pharma_Sales_Variable'].unique().tolist()[1:]
 drug_combis = list(combinations(drug_vars, n_variables))
 print(len(drug_combis))
@@ -31,7 +33,7 @@ transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
 # Country,Pharma_Sales_Variable,Pharma_Sales_Value,Life_Expectancy_Variable,Life_Expectancy_Value,Missingness_Indicator
 
 transformation_dict = pipeline()
-print(transformation_dict)
+
 
 # Run generalized linear models for each life expectancy variable
 for life_exp_variable in tqdm(merged_df['Life_Expectancy_Variable'].unique()):
@@ -45,13 +47,38 @@ for life_exp_variable in tqdm(merged_df['Life_Expectancy_Variable'].unique()):
 
     # filling the X matrix
     for i, drug in enumerate(pharma_sales_variables):
-        X[:, i] = transformations[transformation_dict[life_exp_variable][drug][2]](np.array(df[life_exp_variable][drug]) + 1e-10)
+        if transformation_dict[life_exp_variable][drug][2] == None:
+           X[:, i] = np.array(df[life_exp_variable][drug])
+        else:
+            X[:, i] = transformations[transformation_dict[life_exp_variable][drug][2]](np.array(df[life_exp_variable][drug]) + 1e-10)
         X[:, i + n_variables] = np.array(df[life_exp_variable][drug+"missingness"])
 
     y = current_life_exp_df[(current_life_exp_df["Pharma_Sales_Variable"] == list(pharma_sales_variables)[0])]
     y = y["Life_Expectancy_Value"]
 
-    model = LinearRegression()
+
+    outliers_removed = True
+
+    while outliers_removed:
+        # Fit the model
+        model = LinearRegression()
+        model.fit(X, y)
+        y_pred = model.predict(X)
+        residuals = y - y_pred
+
+        # Calculate standard deviation of residuals
+        std_dev = np.std(residuals)
+
+        # Identify non-outliers
+        non_outlier_mask = np.abs(residuals) <= num_std_devs * std_dev
+        prev_len = len(X)
+        X = X[non_outlier_mask.values]
+        y = y[non_outlier_mask]
+
+        # Check if any outliers were removed in this iteration
+        outliers_removed = len(X) < prev_len
+
+    # Refit the model with the final cleaned data
     model.fit(X, y)
 
     score = model.score(X, y)
