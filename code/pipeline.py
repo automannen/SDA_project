@@ -66,9 +66,13 @@ def pipeline():
             x = x - min_val + 1e-10
 
             # Set to 0 so there is always an improvement
-            pearson = 0
-            best_p_value = 0
+            pearson, p_value = pearsonr(x, y)
+            best_transformation = None
+            # pearson = new_pearson
+            best_p_value = p_value
             transformation_idx = None
+            # best_p_value = 0
+            # transformation_idx = None
 
 
             for idx, transformation in enumerate(transformations):
@@ -83,12 +87,12 @@ def pipeline():
                     best_p_value = p_value
                     transformation_idx = idx
 
-            vanilla_pearson, p_value = pearsonr(x, y)
-            if abs(vanilla_pearson) > abs(pearson):
-                best_transformation = None
-                pearson = new_pearson
-                best_p_value = p_value
-                transformation_idx = None
+            # vanilla_pearson, p_value = pearsonr(x, y)
+            # if abs(vanilla_pearson) > abs(pearson):
+            #     best_transformation = None
+            #     pearson = new_pearson
+            #     best_p_value = p_value
+            #     transformation_idx = None
             model = LinearRegression()
 
             if best_transformation == None:
