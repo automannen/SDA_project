@@ -115,8 +115,8 @@ print(merged_df.shape)
 copy = merged_df.copy()
 
 # Scale set with a factor of 50 (for random noice while the true values stay constant)
-for i in range(49):
-  merged_df = merged_df._append(copy)
+# for i in range(49):
+#   merged_df = merged_df._append(copy)
 
 print(merged_df.shape)
 
