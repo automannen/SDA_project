@@ -17,7 +17,6 @@ for gender in merged_df['Life_Expectancy_Variable'].unique():
 
     for i, drug in enumerate(drugs):
         info_drug_x = merged_df[merged_df['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
-        print(info_drug_x)
         
         filter_gender = info_drug_x[info_drug_x['Life_Expectancy_Variable'] == gender]
         x = np.array(filter_gender['Pharma_Sales_Value']) 
@@ -25,7 +24,20 @@ for gender in merged_df['Life_Expectancy_Variable'].unique():
     
     pca = PCA(n_components)
     X_new = pca.fit_transform(X) # shape (33, 2), reduced to 2 dimensions
-    labels = KMeans(n_clusters=n_clusters).fit_predict(X_new)
+    labels = KMeans(n_clusters=n_clusters).fit_predict(X_new) # pakt de eerste outlier van eerste gender, tweede wel perfect
+    print('labels', labels)
+    test = np.unique(labels, return_counts=True)
+    outlier_labels = np.unique(labels, return_counts=True)[0][np.unique(labels, return_counts=True)[1] < 2]  
+    print('cluster of outlier', outlier_labels)
+
+    # Retrieving outlier from the original data
+    for outlier_label in outlier_labels:
+            outlier_indices = np.where(labels == outlier_label)[0]
+            outlier_records = merged_df.iloc[outlier_indices]
+            print(f"Outliers for {gender} in Cluster {outlier_label}:\n{outlier_records}")
+    # aantal keer doen want hij assigned soms net andere cluster, soms perfect, soms net niet
+    
+    # Visualizing 
     for i in np.unique(labels):
         plt.scatter(X_new[labels == i , 0], X_new[labels == i , 1], label = i) 
     
