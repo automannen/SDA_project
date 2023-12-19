@@ -6,9 +6,11 @@ from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 
 
+
 merged_df = pd.read_csv('merged_data.csv')
 drugs = merged_df['Pharma_Sales_Variable'].unique()[1:]# skipping the total sales variable
 countries = merged_df['Country'].unique()
+
 
 
 # Function to identify single-item clusters using Nearest Neighbors
@@ -35,13 +37,13 @@ def identify_single_item_clusters_nn(X, n_components, n_neighbors, f_std):
     return single_item_indices, X_pca
 
 
-def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15):
+def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15, merged_df=merged_df, n_extended=1):
     single_item_clusters_info_nn = {}
     remainers = {}
 
     for gender in merged_df['Life_Expectancy_Variable'].unique():
-        X = np.zeros((len(countries), len(drugs)))
-
+        X = np.zeros((len(countries) * n_extended, len(drugs)))
+        print(X.shape)
         for i, drug in enumerate(drugs):
             # print(i, drug)
             info_drug_x = merged_df[merged_df['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
@@ -51,20 +53,18 @@ def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15):
             X[:, i] = x
 
 
-        # print(gender)
-
         # Identifying single-item clusters using nearest neighbors after PCA
         single_item_indices_nn, X_pca = identify_single_item_clusters_nn(X, n_components, n_neighbors, f_std)
         # print(single_item_indices_nn)
 
         # TODO: uncomment to plot
         # scatterplot all dots without single_item_indices_nn
-        # for i in range(len(X_pca)):
-        #     if i not in single_item_indices_nn:
-        #         plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
-        #     else:
-        #         plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
-        # plt.show()
+        for i in range(len(X_pca)):
+            if i not in single_item_indices_nn:
+                plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
+            else:
+                plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
+        plt.show()
 
         single_item_clusters_info_nn[gender] = single_item_indices_nn
 

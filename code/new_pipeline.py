@@ -9,6 +9,7 @@ from outlier_detection_olivier import detect_and_remove_outliers
 
 plots_directory = '../data_visualization/transformed_data'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
+
 merged_df = pd.read_csv('merged_data.csv')
 drugs = pharma_sales_df['Variable'].unique()[1:] # skipping the total sales variable
 squared = lambda x: x**2
@@ -21,11 +22,6 @@ transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
 
 def plot_transformed_data(x, y, best_transformation, drug, gender):
 
-    # for i in range(19):
-    #     max_value = max(x)
-    #     idx_max = np.where(x == max_value)
-    #     x = np.delete(x, idx_max)
-    #     y = np.delete(y, idx_max)
 
     if best_transformation == None:
         filename = f"{drug}_{gender}"
@@ -44,7 +40,7 @@ def plot_transformed_data(x, y, best_transformation, drug, gender):
     plt.close()
 
 
-def pipeline():
+def pipeline(merged_df, n_extended=1):
     """
     This function takes different transformations on the sets of independent variables to find which is the best fit to the dependent variable.
     To find the best transformation, the pearson correlation coeffcient is used. This coefficient indicates the strenght and direction of the linear
@@ -53,17 +49,14 @@ def pipeline():
     """
     transformation_dict = defaultdict(lambda: {})
 
-    prepared_data = detect_and_remove_outliers(n_components = 2, n_neighbors = 3, f_std = 0)
+    prepared_data = detect_and_remove_outliers(n_components = 2, n_neighbors = 2, f_std = 0, merged_df=merged_df, n_extended=n_extended)
 
     for df_current_gender in prepared_data:
-    # for i, gender in enumerate(merged_df['Life_Expectancy_Variable'].unique()):
 
-        # df_current_gender =  prepared_data[i]
         for drug in drugs:
 
             info_drug_x = df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
             best_transformation = None
-            # filter_gender = info_drug_x[info_drug_x['Life_Expectancy_Variable'] == gender]
 
             x = np.array(info_drug_x['Pharma_Sales_Value'])
             y = np.array(info_drug_x['Life_Expectancy_Value'])

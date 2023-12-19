@@ -5,7 +5,6 @@ from sklearn.linear_model import LinearRegression
 from collections import defaultdict
 from tqdm import tqdm
 from new_pipeline import pipeline
-from scipy.stats import boxcox
 import os
 import matplotlib.pyplot as plt
 
@@ -15,23 +14,32 @@ squared.__name__ = 'square'
 reciprocal = lambda x: 1/x
 reciprocal.__name__ = 'reciprocal'
 
-merged_df = pd.read_csv('merged_data.csv')
+extended = False
+
+if extended:
+    merged_df = pd.read_csv('merged_data_extended.csv')
+    n_extended = 50
+else:
+    merged_df = pd.read_csv('merged_data.csv')
+    n_extended = 1
 
 # how many independent variables in the linear regression
 n_variables = 1
 
-num_std_devs = 3
+num_std_devs = 2
 drug_vars = merged_df['Pharma_Sales_Variable'].unique().tolist()[1:]
 
 countries = merged_df['Country'].unique().tolist()
 drug_combis = list(combinations(drug_vars, n_variables))
 
-transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
+transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
+transformations_inverse = [np.exp, np.log, squared, np.sqrt, reciprocal]
 # Columns:
 # Country,Pharma_Sales_Variable,Pharma_Sales_Value,Life_Expectancy_Variable,Life_Expectancy_Value,Missingness_Indicator
 
-transformation_dict, prepared_data = pipeline()
-
+print("start pipeline")
+transformation_dict, prepared_data = pipeline(merged_df=merged_df, n_extended=n_extended)
+print('end pipeline')
 
 # Run generalized linear models for each life expectancy variable
 for df_current_gender in prepared_data:
@@ -43,7 +51,7 @@ for df_current_gender in prepared_data:
   for pharma_sales_variables in drug_combis:
     # print(f"Results for Pharma Sales: {pharma_sales_variables}")
 
-    X = np.zeros((len(df_current_gender['Country'].unique()), n_variables))
+    X = np.zeros((len(df_current_gender['Country'].unique())*n_extended, n_variables))
 
     # filling the X matrix
     for i, drug in enumerate(pharma_sales_variables):
@@ -94,18 +102,36 @@ for df_current_gender in prepared_data:
 
     if n_variables == 1:
         x_values = np.linspace(min(X[:, 0]), max(X[:,0]), 10)
-        plt.plot(x_values, model.intercept_ + model.coef_ * x_values, label="fitted line")
+        plt.plot(x_values, model.intercept_ + model.coef_ * x_values, label="fitted line", color='orange')
         filename = f"{gender.replace(' ', '_') + pharma_sales_variables[0].replace(' ', '_')}"
         filepath = os.path.join(plots_directory, filename)
         plt.savefig(filepath)
         plt.legend()
         plt.close()
 
-    if score > 0.4:
+
+    coeffs = []
+
+    if min(model.coef_) >= 0.1:
+
+        for i, drug in enumerate(pharma_sales_variables):
+            if transformation_dict[gender][drug][2] == None:
+                coeffs.append(model.coef_[i])
+            else:
+
+                transformation_idx = transformation_dict[gender][drug][2]
+                func = transformations_inverse[transformation_idx]
+                # adding a small constant for the log transformation
+                small_const = 1e-10
+                coeffs.append(func(model.coef_[i] + small_const))
+    if len(coeffs) != 0 and min(coeffs) >= 0.5:
         print(f"Results for Pharma Sales: {pharma_sales_variables}")
         print(f"Results for Life Expectancy: {gender}")
         print(model.intercept_)
         print(model.coef_)
+        print(coeffs, "Transformed")
         print("LETSGO", score)
         print('\n')
+
+
 

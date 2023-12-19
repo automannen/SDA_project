@@ -115,8 +115,9 @@ print(merged_df.shape)
 copy = merged_df.copy()
 
 # Scale set with a factor of 50 (for random noice while the true values stay constant)
-# for i in range(49):
-#   merged_df = merged_df._append(copy)
+# uncomment if you want to extend the data
+for i in range(49):
+  merged_df = merged_df._append(copy)
 
 print(merged_df.shape)
 
@@ -144,7 +145,7 @@ for i, row in tqdm(merged_df.iterrows(), total=merged_df.shape[0]):
 print(merged_df.columns)
 
 # Save the merged DataFrame to a CSV file
-merged_df.to_csv('merged_data.csv', index=False)
+merged_df.to_csv('merged_data_extended.csv', index=False)
 
 
 
