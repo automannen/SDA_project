@@ -6,6 +6,9 @@ import statistics
 import numpy as np
 from scipy.stats import poisson
 
+# TODO: plot te gebuiken in de presentatie
+# plot om te kijken of life expectancy normaal verdeeld is
+
 life_expectancy_df = pd.read_csv('../data/life_expectancy.csv')
 filtered_life_expectancy_df = life_expectancy_df[
   (life_expectancy_df['Variable'].isin(['Females at age 40', 'Males at age 40'])) &

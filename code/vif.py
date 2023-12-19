@@ -1,15 +1,18 @@
-import pandas as pd 
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 
-chosen_countries = ['Australia', 'Austria', 'Belgium', 'Canada', 'Chile', 'Czechia', 
-                    'Estonia', 'Finland', 'Germany', 'Greece', 'Hungary', 'Iceland', 
-                    'Ireland', 'Italy', 'Korea', 'Latvia', 'Luxembourg', 'Netherlands', 
-                    'New Zealand', 'Norway', 'Portugal', 'Slovak Republic', 'Slovenia', 
+# TODO: het liefst willen we de VIF berekenen voor de data na outlier detection.
+# TODO: kunnen we doen door vif als funvtie te maken en dan de data als argument mee te geven.
+
+chosen_countries = ['Australia', 'Austria', 'Belgium', 'Canada', 'Chile', 'Czechia',
+                    'Estonia', 'Finland', 'Germany', 'Greece', 'Hungary', 'Iceland',
+                    'Ireland', 'Italy', 'Korea', 'Latvia', 'Luxembourg', 'Netherlands',
+                    'New Zealand', 'Norway', 'Portugal', 'Slovak Republic', 'Slovenia',
                     'Spain', 'Sweden', 'Türkiye']
 
 pharma_sales = pd.read_csv('../data/pharma_sales_ppp.csv')
 pharma_sales_2014 = pharma_sales[pharma_sales['Year'] == 2014]
-nervous = 'N-Nervous system' 
+nervous = 'N-Nervous system'
 anti_dep = 'N06A-Antidepressants'
 ulcer = 'A02B-Drugs for peptic ulcer and gastro-oesophageal reflux diseases (GORD)'
 
@@ -34,10 +37,10 @@ for i, col in enumerate(X.columns):
     y = X[col]
     X_without_col = X.drop(col, axis=1)
     model = LinearRegression().fit(X_without_col, y)
-    
+
     r_squared = model.score(X_without_col, y)
     vif = 1 / (1 - r_squared)
-    
+
     print(f'{col}: {vif}')
-    
+
 

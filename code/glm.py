@@ -3,6 +3,10 @@ import numpy as np
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
+# TODO: we kunnen in de presentatie zeggen dat we dit gedaan hadden maar kozen om het goed te visualiseren en dit toen niet meer nodig was.
+# TODO: verwijder file bij opschonen. (eerst noemen in de presentatie)
+
+
 merged_df = pd.read_csv('merged_data.csv')
 
 # Columns:

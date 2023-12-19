@@ -53,7 +53,9 @@
 #   merged_df.rename(columns={'Value_x': 'Life_Expectancy_Value', 'Variable': 'Pharma_Sales_Variable',
 #                             'Value_y': 'Pharma_Sales_Value'}, inplace=True)
 
-
+# TODO: opschonen van de code
+# TODO: dit gebruiken om nog 50 itterations van die missing data opvulling te doen voor het kunnen corelleren van de missingess
+# TODO: noice genereren en daarna corrleren met de missingness indicator
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
@@ -147,7 +149,7 @@ print(merged_df.columns)
 merged_df.to_csv('merged_data.csv', index=False)
 
 
-
+# TODO: duidelijk maken tat TOTAL niet weg is gefilterd in de merged_df en dat dat later pas gebeurt
 
 
 
