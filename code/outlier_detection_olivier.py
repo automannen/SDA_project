@@ -56,7 +56,7 @@ def identify_single_item_clusters_nn(X, n_components, n_neighbors):
 
     # Identifying potential single-item clusters
     # You can adjust the threshold based on your specific needs
-    threshold = np.mean(avg_distances) + 2 * np.std(avg_distances)
+    threshold = np.mean(avg_distances) + 0.15 * np.std(avg_distances)
     single_item_indices = np.where(avg_distances > threshold)[0]
 
     return single_item_indices, X_pca
@@ -88,12 +88,26 @@ for gender in merged_df['Life_Expectancy_Variable'].unique():
     # plt.legend()
     # plt.show()
 
-    # Identifying single-item clusters
-    single_item_indices, X_pca, labels = identify_single_item_clusters(X, n_components, n_clusters)
-    single_item_clusters_info[gender] = single_item_indices
+    # # Identifying single-item clusters
+    # single_item_indices, X_pca, labels = identify_single_item_clusters(X, n_components, n_clusters)
+    # single_item_clusters_info[gender] = single_item_indices
+
+    print(gender)
 
     # Identifying single-item clusters using nearest neighbors after PCA
     single_item_indices_nn, X_pca = identify_single_item_clusters_nn(X, n_components, n_neighbors)
+
+    print(single_item_indices_nn)
+
+    # scatterplot all dots without single_item_indices_nn
+    for i in range(len(X_pca)):
+        if i not in single_item_indices_nn:
+            plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
+        else:
+            plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
+
+    plt.show()
+
     single_item_clusters_info_nn[gender] = single_item_indices_nn
 
 
@@ -101,7 +115,7 @@ for gender in merged_df['Life_Expectancy_Variable'].unique():
     print(gender)
 
     for i, county in enumerate(countries):
-        if i in single_item_clusters_info[gender]:
+        if gender in single_item_clusters_info_nn and i in single_item_clusters_info_nn[gender]:
             print(county)
 
 
