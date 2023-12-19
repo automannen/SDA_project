@@ -5,6 +5,7 @@ from scipy.stats import pearsonr, boxcox
 from collections import defaultdict
 import os
 from sklearn.linear_model import LinearRegression
+from outlier_detection_olivier import detect_and_remove_outliers
 
 plots_directory = '../data_visualization/transformed_data'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
@@ -32,7 +33,7 @@ def plot_transformed_data(x, y, best_transformation, drug, gender):
     else:
         plt.title(best_transformation.__name__)
         plt.scatter(best_transformation(x), y)
-        filename = f"{drug.replace(' ', '_')}_{gender.replace(' ', '_')}_{best_transformation.__name__}"
+        filename = f"{drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
     filepath = os.path.join(plots_directory, filename)
     plt.xlabel(drug + 'transformed with some function')
     plt.ylabel(gender)
@@ -50,16 +51,19 @@ def pipeline():
     """
     transformation_dict = defaultdict(lambda: {})
 
-    for gender in merged_df['Life_Expectancy_Variable'].unique():
+    prepared_data = detect_and_remove_outliers(n_components = 2, n_neighbors = 3, f_std = 0)
 
+    for i, gender in enumerate(merged_df['Life_Expectancy_Variable'].unique()):
+
+        df_current_gender =  prepared_data[i]
         for drug in drugs:
 
-            info_drug_x = merged_df[merged_df['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
+            info_drug_x = df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
             best_transformation = None
-            filter_gender = info_drug_x[info_drug_x['Life_Expectancy_Variable'] == gender]
+            # filter_gender = info_drug_x[info_drug_x['Life_Expectancy_Variable'] == gender]
 
-            x = np.array(filter_gender['Pharma_Sales_Value'])
-            y = np.array(filter_gender['Life_Expectancy_Value'])
+            x = np.array(info_drug_x['Pharma_Sales_Value'])
+            y = np.array(info_drug_x['Life_Expectancy_Value'])
 
             # Adding a small constant to circumvent the zero values in the data
             min_val = min(x)

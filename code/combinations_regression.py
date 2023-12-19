@@ -4,7 +4,7 @@ from itertools import combinations
 from sklearn.linear_model import LinearRegression
 from collections import defaultdict
 from tqdm import tqdm
-from pipeline import pipeline
+from new_pipeline import pipeline
 from scipy.stats import boxcox
 
 
