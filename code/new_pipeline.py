@@ -18,6 +18,7 @@ reciprocal.__name__ = 'reciprocal'
 
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
 
+
 def plot_transformed_data(x, y, best_transformation, drug, gender):
 
     # for i in range(19):
@@ -54,9 +55,10 @@ def pipeline():
 
     prepared_data = detect_and_remove_outliers(n_components = 2, n_neighbors = 3, f_std = 0)
 
-    for i, gender in enumerate(merged_df['Life_Expectancy_Variable'].unique()):
+    for df_current_gender in prepared_data:
+    # for i, gender in enumerate(merged_df['Life_Expectancy_Variable'].unique()):
 
-        df_current_gender =  prepared_data[i]
+        # df_current_gender =  prepared_data[i]
         for drug in drugs:
 
             info_drug_x = df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
@@ -92,26 +94,20 @@ def pipeline():
                     best_p_value = p_value
                     transformation_idx = idx
 
-            # vanilla_pearson, p_value = pearsonr(x, y)
-            # if abs(vanilla_pearson) > abs(pearson):
-            #     best_transformation = None
-            #     pearson = new_pearson
-            #     best_p_value = p_value
-            #     transformation_idx = None
             model = LinearRegression()
 
             if best_transformation == None:
                 model.fit(x.reshape(-1, 1), y)
-                transformation_dict[gender][drug] = (best_transformation, pearson, transformation_idx)
+                # print()
+                transformation_dict[df_current_gender['Life_Expectancy_Variable'].unique()[0]][drug] = (best_transformation, pearson, transformation_idx)
                 # print("R^2: ", model.score(x.reshape(-1, 1), y), "DE SCORE")
             else:
 
                 model.fit(best_transformation(x).reshape(-1, 1), y)
                 # print("R^2: ", model.score(best_transformation(x).reshape(-1, 1), y), "DE SCORE")
 
-            # Saving the best transformation for each drug
-                transformation_dict[gender][drug] = (best_transformation.__name__, pearson, transformation_idx)
-            plot_transformed_data(x, y, best_transformation, drug, gender)
+                transformation_dict[df_current_gender['Life_Expectancy_Variable'].unique()[0]][drug] = (best_transformation.__name__, pearson, transformation_idx)
+            # plot_transformed_data(x, y, best_transformation, drug, df_current_gender['Life_Expectancy_Variable'].unique())
             # if best_p_value <= 0.05:
             #     print("REJECTED")
             #     print(drug)
@@ -121,7 +117,5 @@ def pipeline():
             #     print(drug)
             #     print(gender)
 
-    return transformation_dict
-
-print(pipeline())
+    return transformation_dict, prepared_data
 

@@ -59,12 +59,12 @@ def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15):
 
         # TODO: uncomment to plot
         # scatterplot all dots without single_item_indices_nn
-        for i in range(len(X_pca)):
-            if i not in single_item_indices_nn:
-                plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
-            else:
-                plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
-        plt.show()
+        # for i in range(len(X_pca)):
+        #     if i not in single_item_indices_nn:
+        #         plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
+        #     else:
+        #         plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
+        # plt.show()
 
         single_item_clusters_info_nn[gender] = single_item_indices_nn
 
