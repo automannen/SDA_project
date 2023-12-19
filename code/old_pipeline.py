@@ -7,6 +7,8 @@ import os
 from sklearn.linear_model import LinearRegression
 from outlier_detection_olivier import detect_and_remove_outliers
 
+# TODO: omschrijven om te kunnen laten zien wat onze outlier detection heeft opgelost.
+
 plots_directory = '../data_visualization/transformed_data'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
 merged_df = pd.read_csv('merged_data.csv')

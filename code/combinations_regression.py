@@ -8,6 +8,11 @@ from new_pipeline import pipeline
 import os
 import matplotlib.pyplot as plt
 
+# TODO: significantie test voor de coefficients
+# TODO: mogen we de R score gebruiken en hoe kunnen we die interpreteren?
+
+# TODO: Akaike information criterion of Bayesian information criterion gebruiken om te kijken welke model het beste is.
+
 plots_directory = '../data_visualization/linear_regression_fit'
 squared = lambda x: x**2
 squared.__name__ = 'square'

@@ -7,6 +7,9 @@ import os
 from sklearn.linear_model import LinearRegression
 from outlier_detection_olivier import detect_and_remove_outliers
 
+# TODO: plots zijn voor het visualiseren van de data na outlier detection.
+# TODO: opschonen van de code
+
 plots_directory = '../data_visualization/transformed_data'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
 

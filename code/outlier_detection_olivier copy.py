@@ -5,6 +5,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 
+# TODO: hier staat nog de KMeans clustering in en die hebben we nodig voor onze progressie plot. die er tot had geleid dat we Nearest Neighbors hebben gebruikt.
 
 merged_df = pd.read_csv('merged_data.csv')
 drugs = merged_df['Pharma_Sales_Variable'].unique()[1:]# skipping the total sales variable
