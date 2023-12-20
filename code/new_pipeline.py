@@ -1,18 +1,13 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import pearsonr, boxcox
+from scipy.stats import pearsonr
 from collections import defaultdict
 import os
-from sklearn.linear_model import LinearRegression
 from outlier_detection import detect_and_remove_outliers
-
-# TODO: plots zijn voor het visualiseren van de data na outlier detection.
-# TODO: opschonen van de code
 
 plots_directory = '../data_visualization/transformed_data'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
-
 merged_df = pd.read_csv('merged_data.csv')
 drugs = pharma_sales_df['Variable'].unique()[1:] # skipping the total sales variable
 squared = lambda x: x**2
@@ -20,11 +15,9 @@ squared.__name__ = 'square'
 reciprocal = lambda x: 1/x
 reciprocal.__name__ = 'reciprocal'
 
-transformations = [np.log, np.exp, np.sqrt, squared, reciprocal, boxcox]
-
+transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
 
 def plot_transformed_data(x, y, best_transformation, drug, gender):
-
 
     if best_transformation == None:
         filename = f"{drug}_{gender}"
@@ -39,7 +32,6 @@ def plot_transformed_data(x, y, best_transformation, drug, gender):
     plt.xlabel(drug + 'transformed with some function')
     plt.ylabel(gender)
     plt.savefig(filepath)
-
     plt.close()
 
 
@@ -68,50 +60,22 @@ def pipeline(merged_df, n_extended=1):
             min_val = min(x)
             x = x - min_val + 1e-10
 
-            # Set to 0 so there is always an improvement
-            pearson, p_value = pearsonr(x, y)
+            pearson, _ = pearsonr(x, y)
             best_transformation = None
-            # pearson = new_pearson
-            best_p_value = p_value
             transformation_idx = None
-            # best_p_value = 0
-            # transformation_idx = None
-
 
             for idx, transformation in enumerate(transformations):
-                if transformation == boxcox and drug != 'Total pharmaceutical sales':
-                    transformed_data, _ = boxcox(x)
-                else:
-                    transformed_data = transformation(x)
-                    new_pearson, p_value = pearsonr(transformed_data, y)
-                if abs(new_pearson) > abs(pearson): #maakt niet uit of nega of posi
+                transformed_data = transformation(x)
+                new_pearson, _ = pearsonr(transformed_data, y)
+                if abs(new_pearson) > abs(pearson): 
                     best_transformation = transformation
                     pearson = new_pearson
-                    best_p_value = p_value
                     transformation_idx = idx
 
-            model = LinearRegression()
-
             if best_transformation == None:
-                model.fit(x.reshape(-1, 1), y)
-                # print()
                 transformation_dict[df_current_gender['Life_Expectancy_Variable'].unique()[0]][drug] = (best_transformation, pearson, transformation_idx)
-                # print("R^2: ", model.score(x.reshape(-1, 1), y), "DE SCORE")
             else:
-
-                model.fit(best_transformation(x).reshape(-1, 1), y)
-                # print("R^2: ", model.score(best_transformation(x).reshape(-1, 1), y), "DE SCORE")
-
                 transformation_dict[df_current_gender['Life_Expectancy_Variable'].unique()[0]][drug] = (best_transformation.__name__, pearson, transformation_idx)
-            # plot_transformed_data(x, y, best_transformation, drug, df_current_gender['Life_Expectancy_Variable'].unique())
-            # if best_p_value <= 0.05:
-            #     print("REJECTED")
-            #     print(drug)
-            #     print(gender)
-            # else:
-            #     print("ACCEPTED")
-            #     print(drug)
-            #     print(gender)
 
     return transformation_dict, prepared_data
 
