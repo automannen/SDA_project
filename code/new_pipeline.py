@@ -18,21 +18,22 @@ reciprocal.__name__ = 'reciprocal'
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
 
 def plot_transformed_data(x, y, best_transformation, drug, gender):
-
+    
     if best_transformation == None:
-        filename = f"{drug}_{gender}"
         plt.scatter(x, y)
-        plt.title('no transformation')
+        plt.title(f'{drug} not transformed')
     else:
-        plt.title(best_transformation.__name__)
+        plt.title(f'{drug} transformed with {best_transformation.__name__}')
         plt.scatter(best_transformation(x), y)
-        filename = f"{drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
 
+    filename = f"{'old_pipeline_'+ drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
     filepath = os.path.join(plots_directory, filename)
-    plt.xlabel(drug + 'transformed with some function')
+
+    plt.xlabel(drug)
     plt.ylabel(gender)
     plt.savefig(filepath)
     plt.close()
+
 
 
 def pipeline(merged_df, n_extended=1):
@@ -47,9 +48,9 @@ def pipeline(merged_df, n_extended=1):
     prepared_data = detect_and_remove_outliers(n_components = 2, n_neighbors = 2, f_std = 0, merged_df=merged_df, n_extended=n_extended)
 
     for df_current_gender in prepared_data:
+        gender = df_current_gender['Life_Expectancy_Variable'].unique()[0]
 
         for drug in drugs:
-
             info_drug_x = df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
             best_transformation = None
 
@@ -67,15 +68,21 @@ def pipeline(merged_df, n_extended=1):
             for idx, transformation in enumerate(transformations):
                 transformed_data = transformation(x)
                 new_pearson, _ = pearsonr(transformed_data, y)
+                
                 if abs(new_pearson) > abs(pearson): 
                     best_transformation = transformation
                     pearson = new_pearson
                     transformation_idx = idx
 
             if best_transformation == None:
-                transformation_dict[df_current_gender['Life_Expectancy_Variable'].unique()[0]][drug] = (best_transformation, pearson, transformation_idx)
+                transformation_dict[gender][drug] = (best_transformation, pearson, transformation_idx)
             else:
-                transformation_dict[df_current_gender['Life_Expectancy_Variable'].unique()[0]][drug] = (best_transformation.__name__, pearson, transformation_idx)
+                # Saving the best transformation for each drug
+                transformation_dict[gender][drug] = (best_transformation.__name__, pearson, transformation_idx)
+
+            plot_transformed_data(x, y, best_transformation, drug, gender)
 
     return transformation_dict, prepared_data
 
+pipeline(merged_df)
+            
