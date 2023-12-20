@@ -68,6 +68,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # Load datasets
 life_expectancy_df = pd.read_csv('../data/life_expectancy.csv')
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
+gdp_df = pd.read_csv('../data/gdp.csv')
 
 # Filter data for the year 2014
 filtered_life_expectancy_df = life_expectancy_df[
@@ -78,6 +79,10 @@ filtered_life_expectancy_df = life_expectancy_df[
 filtered_pharma_sales_df = pharma_sales_df[
   (pharma_sales_df['Measure'] == '/capita, US$ purchasing power parity') &
   (pharma_sales_df['Year'] == 2014)
+]
+
+filtered_gdp_df = gdp_df[
+  (gdp_df)
 ]
 
 # Drop unnecessary columns

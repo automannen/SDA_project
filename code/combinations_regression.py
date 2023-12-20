@@ -29,7 +29,7 @@ else:
     n_extended = 1
 
 # how many independent variables in the linear regression
-n_variables = 1
+n_variables = 2
 
 num_std_devs = 2
 drug_vars = merged_df['Pharma_Sales_Variable'].unique().tolist()[1:]
@@ -55,7 +55,7 @@ for df_current_gender in prepared_data:
 
   for pharma_sales_variables in drug_combis:
     # print(f"Results for Pharma Sales: {pharma_sales_variables}")
-
+    print(len(df_current_gender['Country'].unique()), "AANTAL DATAPUNTEN")
     X = np.zeros((len(df_current_gender['Country'].unique())*n_extended, n_variables))
 
     # filling the X matrix
@@ -117,6 +117,11 @@ for df_current_gender in prepared_data:
 
     coeffs = []
 
+    y_predicted = model.predict(X)
+    residuals = y - y_predicted
+    mse = np.mean(residuals**2)
+    # print(mse, "DE MSE")
+
     if min(model.coef_) >= 0.1:
 
         for i, drug in enumerate(pharma_sales_variables):
@@ -129,13 +134,34 @@ for df_current_gender in prepared_data:
                 # adding a small constant for the log transformation
                 small_const = 1e-10
                 coeffs.append(func(model.coef_[i] + small_const))
-    if len(coeffs) != 0 and min(coeffs) >= 0.5:
+    if mse < 0.3:
+
+        # plt.hist(residuals, bins=7)
+        # plt.title('residuals histogram plot of ' + str(pharma_sales_variables) + gender)
+        # plt.xlabel('residual values')
+        # plt.ylabel('frequency bins')
+        # plt.show()
+
+        # plt.scatter(y_predicted, y)
+        # plt.title('y predicted vs true y')
+        # plt.xlabel('y predicted')
+        # plt.ylabel('true y')
+        # plt.show()
+
+        # plt.scatter(y, residuals)
+        # plt.title('the residuals plotted with the random variable')
+        # plt.xlabel(str(pharma_sales_variables))
+        # plt.ylabel('the residuals')
+        # plt.show()
+
         print(f"Results for Pharma Sales: {pharma_sales_variables}")
         print(f"Results for Life Expectancy: {gender}")
         print(model.intercept_)
         print(model.coef_)
         print(coeffs, "Transformed")
         print("LETSGO", score)
+        calculated_rsquared = 1 - np.sum((y - y_predicted)**2)/np.sum((y - np.mean(y))**2)
+        print('adjusted score: ', 1 - ((1 - calculated_rsquared) * (len(y) - 1)/(len(y) - 1 - n_variables)))
         print('\n')
 
 
