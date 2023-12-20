@@ -1,17 +1,25 @@
+# vif (variance inflation factor)
+# testing for multicolinearity between the independent variables
+
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
-# TODO: het liefst willen we de VIF berekenen voor de data na outlier detection.
-# TODO: kunnen we doen door vif als funvtie te maken en dan de data als argument mee te geven.
-
+# the chosen countries in our first attempt of the linear model that all contained
+# data for the drugs in the year 2014:
+# - N-Nervous system
+# - N06A-Antidepressants
+# - A02B-Drugs for peptic ulcer and gastro-oesphageal reflux diseases (GORD)
 chosen_countries = ['Australia', 'Austria', 'Belgium', 'Canada', 'Chile', 'Czechia',
                     'Estonia', 'Finland', 'Germany', 'Greece', 'Hungary', 'Iceland',
                     'Ireland', 'Italy', 'Korea', 'Latvia', 'Luxembourg', 'Netherlands',
                     'New Zealand', 'Norway', 'Portugal', 'Slovak Republic', 'Slovenia',
                     'Spain', 'Sweden', 'Türkiye']
 
+
 pharma_sales = pd.read_csv('../data/pharma_sales_ppp.csv')
 pharma_sales_2014 = pharma_sales[pharma_sales['Year'] == 2014]
+
+# The 3 selected drugs
 nervous = 'N-Nervous system'
 anti_dep = 'N06A-Antidepressants'
 ulcer = 'A02B-Drugs for peptic ulcer and gastro-oesophageal reflux diseases (GORD)'
@@ -33,12 +41,16 @@ data = {column_names[0]: nervous_data_filtered['Value'], column_names[1]: anti_d
 X = pd.DataFrame(data, columns=column_names)
 print(X)
 
+# fitting a linear regression model with different independent variable where
+# the dependent variable is a drug and is removed from the set of independent
+# variables
 for i, col in enumerate(X.columns):
     y = X[col]
     X_without_col = X.drop(col, axis=1)
     model = LinearRegression().fit(X_without_col, y)
 
     r_squared = model.score(X_without_col, y)
+    # the bigger the r squared the higher the vif value
     vif = 1 / (1 - r_squared)
 
     print(f'{col}: {vif}')

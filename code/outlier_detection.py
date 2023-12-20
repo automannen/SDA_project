@@ -4,18 +4,19 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
-
+import os
 
 
 merged_df = pd.read_csv('merged_data.csv')
 drugs = merged_df['Pharma_Sales_Variable'].unique()[1:]# skipping the total sales variable
 countries = merged_df['Country'].unique()
 
+# Directory for saving plots
+plots_directory = '../data_visualization/clustering'
+os.makedirs(plots_directory, exist_ok=True)
 
 
-# Function to identify single-item clusters using Nearest Neighbors
 def identify_single_item_clusters_nn(X, n_components, n_neighbors, f_std):
-    # Applying PCA
     pca = PCA(n_components)
     X_pca = pca.fit_transform(X)
 
@@ -23,14 +24,13 @@ def identify_single_item_clusters_nn(X, n_components, n_neighbors, f_std):
     neigh = NearestNeighbors(n_neighbors=n_neighbors)
     neigh.fit(X_pca)
 
-    # Calculate the distances and indices of neighbors
-    distances, indices = neigh.kneighbors(X_pca)
+    # Calculate the distances of neighbors
+    distances, _ = neigh.kneighbors(X_pca)
 
     # Determine the average distance to neighbors for each point
     avg_distances = np.mean(distances, axis=1)
 
-    # Identifying potential single-item clusters
-    # You can adjust the threshold based on your specific needs
+    # Identifying distant points
     threshold = np.mean(avg_distances) + f_std * np.std(avg_distances)
     single_item_indices = np.where(avg_distances > threshold)[0]
 
@@ -43,9 +43,7 @@ def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15, 
 
     for gender in merged_df['Life_Expectancy_Variable'].unique():
         X = np.zeros((len(countries) * n_extended, len(drugs)))
-        print(X.shape)
         for i, drug in enumerate(drugs):
-            # print(i, drug)
             info_drug_x = merged_df[merged_df['Pharma_Sales_Variable'] == drug][['Pharma_Sales_Variable', 'Pharma_Sales_Value', 'Life_Expectancy_Value', 'Life_Expectancy_Variable']]
             filter_gender = info_drug_x[info_drug_x['Life_Expectancy_Variable'] == gender]
 
@@ -53,23 +51,32 @@ def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15, 
             X[:, i] = x
 
 
-        # Identifying single-item clusters using nearest neighbors after PCA
         single_item_indices_nn, X_pca = identify_single_item_clusters_nn(X, n_components, n_neighbors, f_std)
-        # print(single_item_indices_nn)
 
-        # TODO: uncomment to plot
+
         # scatterplot all dots without single_item_indices_nn
         for i in range(len(X_pca)):
             if i not in single_item_indices_nn:
                 plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
             else:
                 plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
-        plt.show()
 
-        single_item_clusters_info_nn[gender] = single_item_indices_nn
+       # Some combination of drug-related features that contributed most to the variability in the data
+        plt.xlabel('First principal component values')
+        # Another composite measure/combination of features, capturing remaining variability
+        plt.ylabel('Second principal component values')
+
+        plt.legend()
+        plt.title('Outliers KNN ' + gender)
+
+        plt_name = 'KNN_' + str(gender.replace(' ', '_')) + '.png'
+        heatmap_path = os.path.join(plots_directory, plt_name)
+        plt.savefig(heatmap_path)
+        plt.close()
 
         non_outlier_countries = np.delete(countries, single_item_indices_nn)
 
+        # single_item_clusters_info_nn[gender] = single_item_indices_nn
         # for i, county in enumerate(countries):
         #     if gender in single_item_clusters_info_nn and i in single_item_clusters_info_nn[gender]:
         #         print(county, "is an outlier")
@@ -83,6 +90,4 @@ def detect_and_remove_outliers(n_components = 2, n_neighbors = 5, f_std = 0.15, 
     return (male_df, female_df)
 
 
-
-
-# detect_and_remove_outliers()
+detect_and_remove_outliers()
