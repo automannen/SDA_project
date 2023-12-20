@@ -1,13 +1,16 @@
+# Plotting the life expectancy in a histogram to check if it is normally distributed
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from collections import defaultdict
 from scipy.stats import norm
-import statistics
 import numpy as np
-from scipy.stats import poisson
+import os
 
-# TODO: plot te gebuiken in de presentatie
-# plot om te kijken of life expectancy normaal verdeeld is
+n_datapoints = 100
+
+plots_directory = '../data_visualization/life_expectancy'
+os.makedirs(plots_directory, exist_ok=True)
 
 life_expectancy_df = pd.read_csv('../data/life_expectancy.csv')
 filtered_life_expectancy_df = life_expectancy_df[
@@ -17,21 +20,22 @@ filtered_life_expectancy_df = life_expectancy_df[
 ]
 
 selected_columns = filtered_life_expectancy_df[['Variable', 'Value']]
+selected_columns = pd.DataFrame(selected_columns)
 
-gender_life_expectancy = defaultdict(lambda: [])
+for gender in selected_columns['Variable'].unique():
 
-for row in selected_columns.iterrows():
-    gender_life_expectancy[row[1]["Variable"]].append(row[1]["Value"]*row[1]["Value"])
-
-for gender in ['Females at age 40', 'Males at age 40']:
-    data = gender_life_expectancy[gender]
+    data = selected_columns[selected_columns['Variable'] == gender][['Value']]
     mean = np.mean(data)
     sd = np.std(data)
-    x = np.linspace(min(data), max(data), 100)
+
+    x = np.linspace(min(np.array(data)), max(np.array(data)), n_datapoints)
 
     plt.plot(x, norm.pdf(x, mean, sd))
-    plt.hist(gender_life_expectancy[gender], density=True, bins=20)
-    plt.title(gender)
-    plt.xlabel("life expectancy at age 40")
-    plt.ylabel("bins count")
-    plt.show()
+    plt.hist(data, density=True, bins=20)
+    plt.title(f"Histogram of {gender}")
+    plt.xlabel(gender)
+    plt.ylabel("Normalized frequency")
+    filename = f"{gender}"
+    filepath = os.path.join(plots_directory, filename)
+    plt.savefig(filepath)
+    plt.close()
