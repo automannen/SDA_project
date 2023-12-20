@@ -125,7 +125,7 @@ def identify_single_item_clusters_nn(X, n_components, n_neighbors, f_std):
 
     return single_item_indices, X_pca
 
-def detect_and_remove_outliers(n_components=2, n_neighbors=5, f_std=0.15, merged_df=merged_df, n_extended=1):
+def detect_and_remove_outliers(n_components=2, n_neighbors=2, f_std=0, merged_df=merged_df, n_extended=1):
     """Detects and removes outliers from the dataset."""
     remainers = {}
 
