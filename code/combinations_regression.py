@@ -8,29 +8,16 @@ from new_pipeline import pipeline
 import os
 import matplotlib.pyplot as plt
 
-# TODO: significantie test voor de coefficients
-# TODO: mogen we de R score gebruiken en hoe kunnen we die interpreteren?
-
-# TODO: Akaike information criterion of Bayesian information criterion gebruiken om te kijken welke model het beste is.
-
 plots_directory = '../data_visualization/linear_regression_fit'
 squared = lambda x: x**2
 squared.__name__ = 'square'
 reciprocal = lambda x: 1/x
 reciprocal.__name__ = 'reciprocal'
 
-extended = False
+merged_df = pd.read_csv('merged_data.csv')
 
-if extended:
-    merged_df = pd.read_csv('merged_data_extended.csv')
-    n_extended = 50
-else:
-    merged_df = pd.read_csv('merged_data.csv')
-    n_extended = 1
-
-# how many independent variables in the linear regression
+# Independent variables
 n_variables = 2
-
 num_std_devs = 2
 drug_vars = merged_df['Pharma_Sales_Variable'].unique().tolist()[1:]
 
@@ -42,41 +29,36 @@ transformations_inverse = [np.exp, np.log, squared, np.sqrt, reciprocal]
 # Columns:
 # Country,Pharma_Sales_Variable,Pharma_Sales_Value,Life_Expectancy_Variable,Life_Expectancy_Value,Missingness_Indicator
 
-print("start pipeline")
-transformation_dict, prepared_data = pipeline(merged_df=merged_df, n_extended=n_extended)
-print('end pipeline')
+transformation_dict, prepared_data = pipeline(merged_df=merged_df)
 
 # Run generalized linear models for each life expectancy variable
 for df_current_gender in prepared_data:
-
-#   print(f"\nResults for Life Expectancy: {life_exp_variable}")
   gender = df_current_gender['Life_Expectancy_Variable'].unique()[0]
 
-
   for pharma_sales_variables in drug_combis:
-    # print(f"Results for Pharma Sales: {pharma_sales_variables}")
-    print(len(df_current_gender['Country'].unique()), "AANTAL DATAPUNTEN")
-    X = np.zeros((len(df_current_gender['Country'].unique())*n_extended, n_variables))
 
-    # filling the X matrix
+    X = np.zeros((len(df_current_gender['Country'].unique()), n_variables))
+
+    # Filling the X matrix
     for i, drug in enumerate(pharma_sales_variables):
         if transformation_dict[gender][drug][2] == None:
            X[:, i] = df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug]['Pharma_Sales_Value']
         else:
             transformation_idx = transformation_dict[gender][drug][2]
             func = transformations[transformation_idx]
-            # adding a small constant for the log transformation
+            # Adding a small constant for the log transformation
             small_const = 1e-10
             X[:, i] = func(df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug]['Pharma_Sales_Value'] + small_const)
 
     y = df_current_gender[(df_current_gender["Pharma_Sales_Variable"] == list(pharma_sales_variables)[0])]
     y = y["Life_Expectancy_Value"]
 
+    # Plot in 2D if only one explanatory variable
     if n_variables == 1:
         plt.scatter(X[:, 0], y)
         plt.xlabel(pharma_sales_variables)
         plt.ylabel(gender)
-        plt.title('fitted line in plot')
+        plt.title(f'Fitted model for life expectancy - {gender} and pharma-sales - {drug}')
 
     outliers_removed = True
 
@@ -103,7 +85,6 @@ for df_current_gender in prepared_data:
     model.fit(X, y)
 
     score = model.score(X, y)
-    # threshold for the score
 
     if n_variables == 1:
         x_values = np.linspace(min(X[:, 0]), max(X[:,0]), 10)
@@ -120,7 +101,6 @@ for df_current_gender in prepared_data:
     y_predicted = model.predict(X)
     residuals = y - y_predicted
     mse = np.mean(residuals**2)
-    # print(mse, "DE MSE")
 
     if min(model.coef_) >= 0.1:
 
@@ -152,7 +132,7 @@ for df_current_gender in prepared_data:
         # plt.title('the residuals plotted with the random variable')
         # plt.xlabel(str(pharma_sales_variables))
         # plt.ylabel('the residuals')
-        # plt.show()
+        # plt.show()    
 
         print(f"Results for Pharma Sales: {pharma_sales_variables}")
         print(f"Results for Life Expectancy: {gender}")
