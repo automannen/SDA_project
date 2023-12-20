@@ -16,16 +16,20 @@ reciprocal.__name__ = 'reciprocal'
 
 merged_df = pd.read_csv('merged_data.csv')
 
-# Independent variables
+# The amount of independent variables in the model
 n_variables = 2
+# Amount of standarddeviations in the outlier removal during fitting
 num_std_devs = 2
-drug_vars = merged_df['Pharma_Sales_Variable'].unique().tolist()[1:]
 
+drug_vars = merged_df['Pharma_Sales_Variable'].unique().tolist()[1:]
 countries = merged_df['Country'].unique().tolist()
+
+# Form the combinations for all the models
 drug_combis = list(combinations(drug_vars, n_variables))
 
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
 transformations_inverse = [np.exp, np.log, squared, np.sqrt, reciprocal]
+
 # Columns:
 # Country,Pharma_Sales_Variable,Pharma_Sales_Value,Life_Expectancy_Variable,Life_Expectancy_Value,Missingness_Indicator
 
@@ -128,19 +132,11 @@ for df_current_gender in prepared_data:
         plt.ylabel('true y')
         plt.show()
 
-<<<<<<< HEAD
         # plt.scatter(y, residuals)
         # plt.title('the residuals plotted with the random variable')
         # plt.xlabel(str(pharma_sales_variables))
         # plt.ylabel('the residuals')
-        # plt.show()    
-=======
-        plt.scatter(y, residuals)
-        plt.title('the residuals plotted with the random variable')
-        plt.xlabel(str(pharma_sales_variables))
-        plt.ylabel('the residuals')
-        plt.show()
->>>>>>> a3714237b86aa8941b822eb6ba6bc0b11a901c45
+        # plt.show()
 
         print(f"Results for Pharma Sales: {pharma_sales_variables}")
         print(f"Results for Life Expectancy: {gender}")
