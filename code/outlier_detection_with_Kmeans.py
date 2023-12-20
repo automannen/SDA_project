@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-from sklearn.neighbors import NearestNeighbors
+import os
 
 # TODO: hier staat nog de KMeans clustering in en die hebben we nodig voor onze progressie plot. die er tot had geleid dat we Nearest Neighbors hebben gebruikt.
 
@@ -12,10 +12,14 @@ drugs = merged_df['Pharma_Sales_Variable'].unique()[1:]# skipping the total sale
 countries = merged_df['Country'].unique()
 
 
+# Directory for saving plots
+plots_directory = '../data_visualization/clustering'
+os.makedirs(plots_directory, exist_ok=True)
+
+
 # Parameters
 n_components = 2  # Number of PCA components
-n_neighbors = 5   # Number of nearest neighbors
-n_clusters = 4   # Number of clusters
+n_clusters = 4  # Number of clusters
 
 
 # Function to perform PCA, KMeans and identify single-item clusters
@@ -28,7 +32,6 @@ def identify_single_item_clusters(X, n_components, n_clusters):
     kmeans = KMeans(n_clusters=n_clusters)
     labels = kmeans.fit_predict(X_pca)
 
-
     # Identifying clusters with only one item
     unique, counts = np.unique(labels, return_counts=True)
     single_item_clusters = unique[counts == 1]
@@ -39,32 +42,8 @@ def identify_single_item_clusters(X, n_components, n_clusters):
     return single_item_indices, X_pca, labels
 
 
-# Function to identify single-item clusters using Nearest Neighbors
-def identify_single_item_clusters_nn(X, n_components, n_neighbors):
-    # Applying PCA
-    pca = PCA(n_components)
-    X_pca = pca.fit_transform(X)
-
-    # Initialize NearestNeighbors
-    neigh = NearestNeighbors(n_neighbors=n_neighbors)
-    neigh.fit(X_pca)
-
-    # Calculate the distances and indices of neighbors
-    distances, indices = neigh.kneighbors(X_pca)
-
-    # Determine the average distance to neighbors for each point
-    avg_distances = np.mean(distances, axis=1)
-
-    # Identifying potential single-item clusters
-    # You can adjust the threshold based on your specific needs
-    threshold = np.mean(avg_distances) + 0.15 * np.std(avg_distances)
-    single_item_indices = np.where(avg_distances > threshold)[0]
-
-    return single_item_indices, X_pca
-
 # Analyzing for each gender
 single_item_clusters_info = {}
-single_item_clusters_info_nn = {}
 
 
 for gender in merged_df['Life_Expectancy_Variable'].unique():
@@ -78,46 +57,32 @@ for gender in merged_df['Life_Expectancy_Variable'].unique():
         x = np.array(filter_gender['Pharma_Sales_Value'])
         X[:, i] = x
 
-
-    # pca = PCA(n_components)
-    # X_new = pca.fit_transform(X)
-    # # print(np.shape(X_new))
-    # labels = KMeans(n_clusters=n_clusters).fit_predict(X_new)
-    # for i in np.unique(labels):
-    #     plt.scatter(X_new[labels == i , 0], X_new[labels == i , 1], label = i)
-    # # plt.scatter(X_new[:, 0], X_new[:, 1])
-    # plt.legend()
-    # plt.show()
-
-    # # Identifying single-item clusters
-    # single_item_indices, X_pca, labels = identify_single_item_clusters(X, n_components, n_clusters)
-    # single_item_clusters_info[gender] = single_item_indices
+    # Identifying single-item clusters
+    single_item_indices, X_pca, labels = identify_single_item_clusters(X, n_components, n_clusters)
+    single_item_clusters_info[gender] = single_item_indices
 
     print(gender)
 
-    # Identifying single-item clusters using nearest neighbors after PCA
-    single_item_indices_nn, X_pca = identify_single_item_clusters_nn(X, n_components, n_neighbors)
-
-    print(single_item_indices_nn)
-
     # scatterplot all dots without single_item_indices_nn
     for i in range(len(X_pca)):
-        if i not in single_item_indices_nn:
+        if i not in single_item_indices:
             plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='blue')
         else:
             plt.scatter(X_pca[i, 0], X_pca[i, 1], label=i, color='red')
 
-    plt.show()
 
-    single_item_clusters_info_nn[gender] = single_item_indices_nn
+    # Some combination of drug-related features that contributed most to the variability in the data
+    plt.xlabel('First principal component values')
+    # Another composite measure/combination of features, capturing remaining variability
+    plt.ylabel('Second principal component values')
 
+    plt.legend()
+    plt.title('Outliers KMeans ' + gender)
 
-for gender in merged_df['Life_Expectancy_Variable'].unique():
-    print(gender)
-
-    for i, county in enumerate(countries):
-        if gender in single_item_clusters_info_nn and i in single_item_clusters_info_nn[gender]:
-            print(county)
+    plt_name = 'KNN_' + str(gender.replace(' ', '_')) + '.png'
+    heatmap_path = os.path.join(plots_directory, plt_name)
+    plt.savefig(heatmap_path)
+    plt.close()
 
 
 
