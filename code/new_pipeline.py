@@ -26,7 +26,7 @@ def plot_transformed_data(x, y, best_transformation, drug, gender):
         plt.title(f'{drug} transformed with {best_transformation.__name__}')
         plt.scatter(best_transformation(x), y)
 
-    filename = f"{'old_pipeline_'+ drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
+    filename = f"{'new_pipeline_'+ drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
     filepath = os.path.join(plots_directory, filename)
 
     plt.xlabel(drug)
