@@ -6,7 +6,7 @@ from collections import defaultdict
 import os
 from outlier_detection import detect_and_remove_outliers
 
-plots_directory = '../data_visualization/transformed_data'
+plots_directory = '../data_visualization/transformed_pipeline_plots'
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
 merged_df = pd.read_csv('merged_data.csv')
 drugs = pharma_sales_df['Variable'].unique()[1:] # skipping the total sales variable

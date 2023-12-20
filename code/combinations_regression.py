@@ -8,7 +8,12 @@ from pipeline import pipeline
 import os
 import matplotlib.pyplot as plt
 
-plots_directory = '../data_visualization/linear_regression_fit'
+linear_regression_fit_plots_directory = '../data_visualization/linear_regression_fit'
+os.makedirs(linear_regression_fit_plots_directory, exist_ok=True)
+
+multivariate_regression_plots_directory = '../data_visualization/multivariate_regression'
+os.makedirs(multivariate_regression_plots_directory, exist_ok=True)
+
 squared = lambda x: x**2
 squared.__name__ = 'square'
 reciprocal = lambda x: 1/x
@@ -98,7 +103,7 @@ for df_current_gender in prepared_data:
         plt.plot(x_values, model.intercept_ + model.coef_ * x_values, label="fitted line", color='orange')
 
         filename = f"{gender.replace(' ', '_') + pharma_sales_variables[0].replace(' ', '_')}"
-        filepath = os.path.join(plots_directory, filename)
+        filepath = os.path.join(linear_regression_fit_plots_directory, filename)
         plt.legend()
         plt.savefig(filepath)
         plt.close()
@@ -111,28 +116,28 @@ for df_current_gender in prepared_data:
     adjusted_r = 1 - ((1 - calculated_rsquared) * (len(y) - 1)/(len(y) - 1 - n_variables))
     print(mse, adjusted_r)
     if mse < 0.1 and adjusted_r > 0.9:
-        # The plots directory for the multivariate regression
-        plots_directory = '../data_visualization/multivariate_regression'
+
+        pharma_sales_variables_string = '_'.join([v.split('_')[0] if '_' in v else v.replace(' ', '_') for v in pharma_sales_variables])
 
         plt.hist(residuals, bins=7)
-        plt.title('residuals histogram plot of ' + str(pharma_sales_variables) + gender)
+        plt.title(f'Residuals histogram plot of {pharma_sales_variables_string} {gender}')
         plt.xlabel('residual values')
         plt.ylabel('frequencies')
 
-        filename = f"histogram_residuals_{gender.replace(' ', '_')}_{str(pharma_sales_variables)}"
-        filepath = os.path.join(plots_directory, filename)
+        filename = f"histogram_residuals_{gender.replace(' ', '_')}_{pharma_sales_variables_string}"
+        filepath = os.path.join(multivariate_regression_plots_directory, filename)
         plt.savefig(filepath)
         plt.close()
 
 
         plt.scatter(y, y_predicted)
+        plt.title(f'The true life expectancy vs the predicted life expectancy of {gender}')
         plt.ylabel(f'predicted life expectancy')
         plt.xlabel(f'true life expectancy')
-        plt.title(f'The true life expectancy vs the predicted life expectancy of {gender}')
         plt.ylim(plt.xlim())
 
-        filename = f"true_predicted_{gender.replace(' ', '_')}_{str(pharma_sales_variables)}"
-        filepath = os.path.join(plots_directory, filename)
+        filename = f"true_predicted_{gender.replace(' ', '_')}_{pharma_sales_variables_string}"
+        filepath = os.path.join(multivariate_regression_plots_directory, filename)
         plt.savefig(filepath)
         plt.close()
 
@@ -142,13 +147,13 @@ for df_current_gender in prepared_data:
         plt.xlabel('life expectancy')
         plt.ylabel('Residuals')
 
-        filename = f"residuals_{gender.replace(' ', '_')}_{str(pharma_sales_variables)}"
-        filepath = os.path.join(plots_directory, filename)
+        filename = f"residuals_{gender.replace(' ', '_')}_{pharma_sales_variables_string}"
+        filepath = os.path.join(multivariate_regression_plots_directory, filename)
         plt.savefig(filepath)
         plt.close()
 
         print(mse, "mean squared error")
-        print(f"Results for Pharma Sales: {pharma_sales_variables}")
+        print(f"Results for Pharma Sales: {pharma_sales_variables_string}")
         print(f"Results for Life Expectancy: {gender}")
         print(model.intercept_)
         print(model.coef_)
