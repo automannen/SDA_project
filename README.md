@@ -9,18 +9,15 @@ In this project we researched the link between pharmaceutical sales and the life
 - Data
 - Data visualization
 
-# Pre
+# Prerequisites
+The libraries and packages needed for this project can be installed from the requirements.txt file with the following command:
 
-# Packages and libraries needed to run the code are in the requirements.txt file or they can be copied from here:
+<pre>pip install -r requirements.txt</pre>
 
-matplotlib==3.4.3
-matplotlib==3.5.1
-numpy==1.21.5
-pandas==1.3.5
-scikit_learn==1.2.2
-scipy==1.8.0
-seaborn==0.13.0
-tqdm==4.64.1
+# Installing
+The installation steps:
+1. Command for cloning the repository
+
 
 
 
