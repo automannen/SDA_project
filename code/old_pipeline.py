@@ -5,7 +5,7 @@ from scipy.stats import pearsonr, boxcox
 from collections import defaultdict
 import os
 from sklearn.linear_model import LinearRegression
-from outlier_detection_olivier import detect_and_remove_outliers
+from outlier_detection import detect_and_remove_outliers
 
 # TODO: omschrijven om te kunnen laten zien wat onze outlier detection heeft opgelost.
 
