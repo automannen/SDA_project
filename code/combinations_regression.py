@@ -4,7 +4,7 @@ from itertools import combinations
 from sklearn.linear_model import LinearRegression
 from collections import defaultdict
 from tqdm import tqdm
-from new_pipeline import pipeline
+from pipeline import pipeline
 import os
 import matplotlib.pyplot as plt
 
