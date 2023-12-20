@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 plots_directory = '../data_visualization/transformed_data'
 os.makedirs(plots_directory, exist_ok=True)
 pharma_sales_df = pd.read_csv('../data/pharma_sales_ppp.csv')
-merged_df = pd.read_csv('merged_data.csv')
+merged_df = pd.read_csv('../data/merged_data.csv')
 drugs = pharma_sales_df['Variable'].unique()[1:] # skipping the total sales variable
 squared = lambda x: x**2
 squared.__name__ = 'square'

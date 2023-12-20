@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 import os
 
 # Read the merged data
-merged_df = pd.read_csv('merged_data.csv')
+merged_df = pd.read_csv('../data/merged_data.csv')
 drugs = merged_df['Pharma_Sales_Variable'].unique()[1:]  # Excluding the total sales variable
 countries = merged_df['Country'].unique()
 

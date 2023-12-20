@@ -19,7 +19,7 @@ squared.__name__ = 'square'
 reciprocal = lambda x: 1/x
 reciprocal.__name__ = 'reciprocal'
 
-merged_df = pd.read_csv('merged_data.csv')
+merged_df = pd.read_csv('../data/merged_data.csv')
 
 # The amount of independent variables in the model
 n_variables = 3

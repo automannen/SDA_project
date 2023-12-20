@@ -6,7 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 import os
 
 # Read the merged data from the CSV file
-merged_df = pd.read_csv('merged_data.csv')
+merged_df = pd.read_csv('../data/merged_data.csv')
 
 # Extract unique pharmaceutical sales variables and countries
 drugs = merged_df['Pharma_Sales_Variable'].unique()[1:]  # Skipping the total sales variable

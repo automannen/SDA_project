@@ -74,4 +74,4 @@ for i, row in tqdm(merged_df.iterrows(), total=merged_df.shape[0]):
             merged_df.at[i, 'Pharma_Sales_Value'] = possible_values.sample(n=1).iloc[0]
 
 # Save the merged DataFrame to a CSV file
-merged_df.to_csv('merged_data.csv', index=False)
+merged_df.to_csv('../data/merged_data.csv', index=False)
