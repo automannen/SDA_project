@@ -18,7 +18,7 @@ reciprocal.__name__ = 'reciprocal'
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
 
 def plot_transformed_data(x, y, best_transformation, drug, gender):
-    
+
     if best_transformation == None:
         plt.scatter(x, y)
         plt.title(f'{drug} not transformed')
@@ -26,7 +26,7 @@ def plot_transformed_data(x, y, best_transformation, drug, gender):
         plt.title(f'{drug} transformed with {best_transformation.__name__}')
         plt.scatter(best_transformation(x), y)
 
-    filename = f"{'old_pipeline_'+ drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
+    filename = f"{'new_pipeline_'+ drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
     filepath = os.path.join(plots_directory, filename)
 
     plt.xlabel(drug)
@@ -68,8 +68,8 @@ def pipeline(merged_df, n_extended=1):
             for idx, transformation in enumerate(transformations):
                 transformed_data = transformation(x)
                 new_pearson, _ = pearsonr(transformed_data, y)
-                
-                if abs(new_pearson) > abs(pearson): 
+
+                if abs(new_pearson) > abs(pearson):
                     best_transformation = transformation
                     pearson = new_pearson
                     transformation_idx = idx
@@ -85,4 +85,3 @@ def pipeline(merged_df, n_extended=1):
     return transformation_dict, prepared_data
 
 pipeline(merged_df)
-            

@@ -55,7 +55,6 @@ for df_current_gender in prepared_data:
 
   for pharma_sales_variables in drug_combis:
     # print(f"Results for Pharma Sales: {pharma_sales_variables}")
-    print(len(df_current_gender['Country'].unique()), "AANTAL DATAPUNTEN")
     X = np.zeros((len(df_current_gender['Country'].unique())*n_extended, n_variables))
 
     # filling the X matrix
@@ -136,23 +135,23 @@ for df_current_gender in prepared_data:
                 coeffs.append(func(model.coef_[i] + small_const))
     if mse < 0.3:
 
-        # plt.hist(residuals, bins=7)
-        # plt.title('residuals histogram plot of ' + str(pharma_sales_variables) + gender)
-        # plt.xlabel('residual values')
-        # plt.ylabel('frequency bins')
-        # plt.show()
+        plt.hist(residuals, bins=7)
+        plt.title('residuals histogram plot of ' + str(pharma_sales_variables) + gender)
+        plt.xlabel('residual values')
+        plt.ylabel('frequency bins')
+        plt.show()
 
-        # plt.scatter(y_predicted, y)
-        # plt.title('y predicted vs true y')
-        # plt.xlabel('y predicted')
-        # plt.ylabel('true y')
-        # plt.show()
+        plt.scatter(y_predicted, y)
+        plt.title('y predicted vs true y')
+        plt.xlabel('y predicted')
+        plt.ylabel('true y')
+        plt.show()
 
-        # plt.scatter(y, residuals)
-        # plt.title('the residuals plotted with the random variable')
-        # plt.xlabel(str(pharma_sales_variables))
-        # plt.ylabel('the residuals')
-        # plt.show()
+        plt.scatter(y, residuals)
+        plt.title('the residuals plotted with the random variable')
+        plt.xlabel(str(pharma_sales_variables))
+        plt.ylabel('the residuals')
+        plt.show()
 
         print(f"Results for Pharma Sales: {pharma_sales_variables}")
         print(f"Results for Life Expectancy: {gender}")
