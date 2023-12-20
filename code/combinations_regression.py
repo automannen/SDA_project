@@ -17,7 +17,7 @@ reciprocal.__name__ = 'reciprocal'
 merged_df = pd.read_csv('merged_data.csv')
 
 # The amount of independent variables in the model
-n_variables = 2
+n_variables = 3
 # Amount of standarddeviations in the outlier removal during fitting
 num_std_devs = 2
 
@@ -28,14 +28,14 @@ countries = merged_df['Country'].unique().tolist()
 drug_combis = list(combinations(drug_vars, n_variables))
 
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
-transformations_inverse = [np.exp, np.log, squared, np.sqrt, reciprocal]
+# transformations_inverse = [np.exp, np.log, squared, np.sqrt, reciprocal]
 
 # Columns:
 # Country,Pharma_Sales_Variable,Pharma_Sales_Value,Life_Expectancy_Variable,Life_Expectancy_Value,Missingness_Indicator
 
 transformation_dict, prepared_data = pipeline(merged_df=merged_df)
 
-# Run generalized linear models for each life expectancy variable
+# Run the combinations of the models
 for df_current_gender in prepared_data:
   gender = df_current_gender['Life_Expectancy_Variable'].unique()[0]
 
@@ -46,26 +46,21 @@ for df_current_gender in prepared_data:
     # Filling the X matrix
     for i, drug in enumerate(pharma_sales_variables):
         if transformation_dict[gender][drug][2] == None:
+
            X[:, i] = df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug]['Pharma_Sales_Value']
         else:
+
             transformation_idx = transformation_dict[gender][drug][2]
             func = transformations[transformation_idx]
-            # Adding a small constant for the log transformation
             small_const = 1e-10
             X[:, i] = func(df_current_gender[df_current_gender['Pharma_Sales_Variable'] == drug]['Pharma_Sales_Value'] + small_const)
 
     y = df_current_gender[(df_current_gender["Pharma_Sales_Variable"] == list(pharma_sales_variables)[0])]
     y = y["Life_Expectancy_Value"]
 
-    # Plot in 2D if only one explanatory variable
-    if n_variables == 1:
-        plt.scatter(X[:, 0], y)
-        plt.xlabel(pharma_sales_variables)
-        plt.ylabel(gender)
-        plt.title(f'Fitted model for life expectancy - {gender} and pharma-sales - {drug}')
-
     outliers_removed = True
 
+    # Outlier removal
     while outliers_removed:
         # Fit the model
         model = LinearRegression()
@@ -90,62 +85,74 @@ for df_current_gender in prepared_data:
 
     score = model.score(X, y)
 
+    # Plot in 2D if only one explanatory variable
     if n_variables == 1:
+        # Scatter plot of the random variable and the independent variable
+        plt.scatter(X[:, 0], y)
+        plt.xlabel(pharma_sales_variables)
+        plt.ylabel(gender)
+        plt.title(f'Fitted model for life expectancy - {gender} and pharma-sales - {drug}')
+
+        # Plotting the fitted linear regression line
         x_values = np.linspace(min(X[:, 0]), max(X[:,0]), 10)
         plt.plot(x_values, model.intercept_ + model.coef_ * x_values, label="fitted line", color='orange')
+
         filename = f"{gender.replace(' ', '_') + pharma_sales_variables[0].replace(' ', '_')}"
         filepath = os.path.join(plots_directory, filename)
-        plt.savefig(filepath)
         plt.legend()
+        plt.savefig(filepath)
         plt.close()
-
-
-    coeffs = []
 
     y_predicted = model.predict(X)
     residuals = y - y_predicted
     mse = np.mean(residuals**2)
 
-    if min(model.coef_) >= 0.1:
-
-        for i, drug in enumerate(pharma_sales_variables):
-            if transformation_dict[gender][drug][2] == None:
-                coeffs.append(model.coef_[i])
-            else:
-
-                transformation_idx = transformation_dict[gender][drug][2]
-                func = transformations_inverse[transformation_idx]
-                # adding a small constant for the log transformation
-                small_const = 1e-10
-                coeffs.append(func(model.coef_[i] + small_const))
-    if mse < 0.3:
+    calculated_rsquared = 1 - np.sum((y - y_predicted)**2)/np.sum((y - np.mean(y))**2)
+    adjusted_r = 1 - ((1 - calculated_rsquared) * (len(y) - 1)/(len(y) - 1 - n_variables))
+    print(mse, adjusted_r)
+    if mse < 0.1 and adjusted_r > 0.9:
+        # The plots directory for the multivariate regression
+        plots_directory = '../data_visualization/multivariate_regression'
 
         plt.hist(residuals, bins=7)
         plt.title('residuals histogram plot of ' + str(pharma_sales_variables) + gender)
         plt.xlabel('residual values')
-        plt.ylabel('frequency bins')
-        plt.show()
+        plt.ylabel('frequencies')
 
-        plt.scatter(y_predicted, y)
-        plt.title('y predicted vs true y')
-        plt.xlabel('y predicted')
-        plt.ylabel('true y')
-        plt.show()
+        filename = f"histogram_residuals_{gender.replace(' ', '_')}_{str(pharma_sales_variables)}"
+        filepath = os.path.join(plots_directory, filename)
+        plt.savefig(filepath)
+        plt.close()
 
-        # plt.scatter(y, residuals)
-        # plt.title('the residuals plotted with the random variable')
-        # plt.xlabel(str(pharma_sales_variables))
-        # plt.ylabel('the residuals')
-        # plt.show()
 
+        plt.scatter(y, y_predicted)
+        plt.ylabel(f'predicted life expectancy')
+        plt.xlabel(f'true life expectancy')
+        plt.title(f'The true life expectancy vs the predicted life expectancy of {gender}')
+        plt.ylim(plt.xlim())
+
+        filename = f"true_predicted_{gender.replace(' ', '_')}_{str(pharma_sales_variables)}"
+        filepath = os.path.join(plots_directory, filename)
+        plt.savefig(filepath)
+        plt.close()
+
+
+        plt.scatter(y, residuals)
+        plt.title(f'The residuals plotted with the true life expectancy {gender}')
+        plt.xlabel('life expectancy')
+        plt.ylabel('Residuals')
+
+        filename = f"residuals_{gender.replace(' ', '_')}_{str(pharma_sales_variables)}"
+        filepath = os.path.join(plots_directory, filename)
+        plt.savefig(filepath)
+        plt.close()
+
+        print(mse, "mean squared error")
         print(f"Results for Pharma Sales: {pharma_sales_variables}")
         print(f"Results for Life Expectancy: {gender}")
         print(model.intercept_)
         print(model.coef_)
-        print(coeffs, "Transformed")
         print("LETSGO", score)
-        calculated_rsquared = 1 - np.sum((y - y_predicted)**2)/np.sum((y - np.mean(y))**2)
-        print('adjusted score: ', 1 - ((1 - calculated_rsquared) * (len(y) - 1)/(len(y) - 1 - n_variables)))
         print('\n')
 
 
