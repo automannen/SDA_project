@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from collections import defaultdict
+from sklearn.linear_model import LinearRegression
 import os
 from outlier_detection import detect_and_remove_outliers
 
@@ -17,14 +18,24 @@ reciprocal.__name__ = 'reciprocal'
 
 transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
 
+# TODO: model meegeven en dan de lijn plotten met de coefficients en intercept
 def plot_transformed_data(x, y, best_transformation, drug, gender):
 
+    model = LinearRegression()
+
     if best_transformation == None:
+        x_values = np.linspace(min(x), max(x), 100)  # Ensuring the line covers the full range
+        model.fit(x.reshape(-1, 1), y)
+        plt.plot(x_values, model.coef_[0] * x_values + model.intercept_, color='red')
         plt.scatter(x, y)
         plt.title(f'{drug} not transformed')
     else:
+        transformed_x = best_transformation(x)
+        x_values = np.linspace(min(transformed_x), max(transformed_x), 100)  # Covering the full range
+        model.fit(transformed_x.reshape(-1, 1), y)
+        plt.plot(x_values, model.coef_[0] * x_values + model.intercept_, color='red')
         plt.title(f'{drug} transformed with {best_transformation.__name__}')
-        plt.scatter(best_transformation(x), y)
+        plt.scatter(transformed_x, y)
 
     filename = f"{'new_pipeline_'+ drug.replace(' ', '_')}_{gender.replace(' ', '_')}"
     filepath = os.path.join(plots_directory, filename)

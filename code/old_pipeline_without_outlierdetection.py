@@ -21,9 +21,17 @@ transformations = [np.log, np.exp, np.sqrt, squared, reciprocal]
 def plot_transformed_data(x, y, best_transformation, drug, gender, model):
 
     if best_transformation == None:
+        x_values = np.linspace(min(x), max(x), 100)  # Ensuring the line covers the full range
+
+        plt.plot(x_values, model.coef_[0] * x_values + model.intercept_, color='red')
         plt.scatter(x, y)
         plt.title(f'{drug} not transformed')
     else:
+
+        transformed_x = best_transformation(x)
+        x_values = np.linspace(min(transformed_x), max(transformed_x), 100)  # Covering the full range
+        plt.plot(x_values, model.coef_[0] * x_values + model.intercept_, color='red')
+
         plt.title(f'{drug} transformed with {best_transformation.__name__}')
         plt.scatter(best_transformation(x), y)
 

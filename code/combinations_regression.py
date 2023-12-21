@@ -7,6 +7,7 @@ from tqdm import tqdm
 from pipeline import pipeline
 import os
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 linear_regression_fit_plots_directory = '../data_visualization/linear_regression_fit'
 os.makedirs(linear_regression_fit_plots_directory, exist_ok=True)
@@ -64,8 +65,10 @@ for df_current_gender in prepared_data:
     y = y["Life_Expectancy_Value"]
 
     outliers_removed = True
+    initial_length = len(X)  # Store the initial length of the dataset
+    total_outliers_removed = 0  # Initialize a counter for total outliers removed
 
-    # Outlier removal
+    # Outlier removal loop
     while outliers_removed:
         # Fit the model
         model = LinearRegression()
@@ -82,13 +85,26 @@ for df_current_gender in prepared_data:
         X = X[non_outlier_mask.values]
         y = y[non_outlier_mask]
 
+        # Update the total number of outliers removed
+        outliers_removed_in_iteration = prev_len - len(X)
+        total_outliers_removed += outliers_removed_in_iteration
+
         # Check if any outliers were removed in this iteration
         outliers_removed = len(X) < prev_len
 
-    # Refit the model with the final cleaned data
-    model.fit(X, y)
+        # Exit the loop if over two fifth of the original dataset has been removed in order ceep the model from overfitting too much
+        if total_outliers_removed > initial_length / 2.5:
+            break
 
-    score = model.score(X, y)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
+    # Refit the model with the final cleaned data
+    model.fit(X_train, y_train)
+
+    score = model.score(X_test, y_test)
+
+    # if score > 0.75:
+    #     print(score, "score")
 
     # Plot in 2D if only one explanatory variable
     if n_variables == 1:
@@ -114,15 +130,15 @@ for df_current_gender in prepared_data:
 
     calculated_rsquared = 1 - np.sum((y - y_predicted)**2)/np.sum((y - np.mean(y))**2)
     adjusted_r = 1 - ((1 - calculated_rsquared) * (len(y) - 1)/(len(y) - 1 - n_variables))
-    print(mse, adjusted_r)
-    if mse < 0.1 and adjusted_r > 0.9:
+    # print(mse, adjusted_r)
+    if mse < 0.1 and adjusted_r > 0.9 and score > 0.9:
 
-        pharma_sales_variables_string = '_'.join([v.split('_')[0] if '_' in v else v.replace(' ', '_') for v in pharma_sales_variables])
+        pharma_sales_variables_string = '_'.join([v.split('-')[0] if '-' in v else v.replace(' ', '_') for v in pharma_sales_variables])
 
         plt.hist(residuals, bins=7)
-        plt.title(f'Residuals histogram plot of {pharma_sales_variables_string} {gender}')
-        plt.xlabel('residual values')
-        plt.ylabel('frequencies')
+        plt.title(f'Residuals histogram of {pharma_sales_variables_string} {gender}')
+        plt.xlabel('Residual values')
+        plt.ylabel('Frequencies')
 
         filename = f"histogram_residuals_{gender.replace(' ', '_')}_{pharma_sales_variables_string}"
         filepath = os.path.join(multivariate_regression_plots_directory, filename)
@@ -131,9 +147,9 @@ for df_current_gender in prepared_data:
 
 
         plt.scatter(y, y_predicted)
-        plt.title(f'The true life expectancy vs the predicted life expectancy of {gender}')
-        plt.ylabel(f'predicted life expectancy')
-        plt.xlabel(f'true life expectancy')
+        plt.title(f'The true vs predicted life expectancy of {pharma_sales_variables_string} {gender}')
+        plt.ylabel(f'Tredicted life expectancy')
+        plt.xlabel(f'True life expectancy')
         plt.ylim(plt.xlim())
 
         filename = f"true_predicted_{gender.replace(' ', '_')}_{pharma_sales_variables_string}"
@@ -143,8 +159,8 @@ for df_current_gender in prepared_data:
 
 
         plt.scatter(y, residuals)
-        plt.title(f'The residuals plotted with the true life expectancy {gender}')
-        plt.xlabel('life expectancy')
+        plt.title(f'The residuals with the true life expectancy {pharma_sales_variables_string} {gender}')
+        plt.xlabel('Life expectancy')
         plt.ylabel('Residuals')
 
         filename = f"residuals_{gender.replace(' ', '_')}_{pharma_sales_variables_string}"
@@ -157,6 +173,7 @@ for df_current_gender in prepared_data:
         print(f"Results for Life Expectancy: {gender}")
         print(model.intercept_)
         print(model.coef_)
+        print("LETSGO", adjusted_r)
         print("LETSGO", score)
         print('\n')
 
